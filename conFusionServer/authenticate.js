@@ -39,19 +39,31 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts,
 exports.verifyUser = passport.authenticate('jwt', {session: false});
 
 
-passport.use('admin', new JwtStrategy(opts, 
-	(jwt_payload, done) => {
-		console.log('JWT payload: ', jwt_payload);
-		User.findOne({_id: jwt_payload._id}, (err, user) => {
-			if (user.admin == false) {
-				var err_admin= new Error('You are not logged in!');
-				err_admin.status = 403;
-				return done(err_admin, false);
-			}
-			else {
-				return done(null, user);
-			}
-		});
-	}));
+// passport.use('admin', new JwtStrategy(opts, 
+// 	(jwt_payload, done) => {
+// 		console.log('JWT payload: ', jwt_payload);
+// 		User.findOne({_id: jwt_payload._id}, (err, user) => {
+// 			if (user.admin == false) {
+// 				var err_admin= new Error('You are not authorized to perform this operation!');
+// 				err_admin.status = 403;
+// 				return done(err_admin, false);
+// 			}
+// 			else {
+// 				return done(null, user);
+// 			}
+// 		});
+// 	}));
 
-exports.verifyAdmin = passport.authenticate('admin', {session: false});
+// exports.verifyAdmin = passport.authenticate('admin', {session: false});
+
+
+exports.verifyAdmin = function(req, res, next) {
+  // console.log(req.user);
+  if(req.user.admin){
+    next();
+  }else {
+    var err = new Error('You are not authorized to perform this operation!');
+     err.status = 403;
+     next(err);
+  }
+}
